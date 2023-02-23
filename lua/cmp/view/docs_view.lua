@@ -39,6 +39,12 @@ docs_view.open = function(self, e, view)
   local left_space = view.col - 1
   local max_width = math.min(documentation.max_width, math.max(left_space, right_space))
 
+  local buffer = self.window:get_buffer()
+  if type(buffer) == 'userdata' then
+    -- Convert the Blob to a string
+    buffer = string.char(buffer:byte(1, #buffer))
+  end
+
   -- Update buffer content if needed.
   if not self.entry or e.id ~= self.entry.id then
     local documents = e:get_documentation()
@@ -51,14 +57,14 @@ docs_view.open = function(self, e, view)
       vim.cmd([[syntax clear]])
       vim.api.nvim_buf_set_lines(self.window:get_buffer(), 0, -1, false, {})
     end)
-    vim.lsp.util.stylize_markdown(self.window:get_buffer(), documents, {
+    vim.lsp.util.stylize_markdown(buffer, documents, {
       max_width = max_width - border_info.horiz,
       max_height = documentation.max_height,
     })
   end
 
   -- Calculate window size.
-  local width, height = vim.lsp.util._make_floating_popup_size(vim.api.nvim_buf_get_lines(self.window:get_buffer(), 0, -1, false), {
+  local width, height = vim.lsp.util._make_floating_popup_size(vim.api.nvim_buf_get_lines(buffer, 0, -1, false), {
     max_width = max_width - border_info.horiz,
     max_height = documentation.max_height - border_info.vert,
   })
